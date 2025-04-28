@@ -62,7 +62,7 @@ Sistem menggunakan plugin **Filament Shield** untuk menerapkan Role-Based Access
 
 ## Laporan
 
-Sistem menampilkan laporan proyek beserta jumlah tugas berdasarkan status yang dapat difilter berdasarkan proyek dan tugas yang diikuti oleh user
+Sistem menampilkan laporan proyek beserta jumlah tugas berdasarkan status yang dapat difilter berdasarkan project, manager, dan 
 
 Status tugas yang didukung:
 - To Do
