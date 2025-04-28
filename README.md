@@ -40,7 +40,19 @@ Entity yang digunakan dalam sistem:
 
 ---
 
-## Alur Sistem (Flowchart)
+## Alur Bisnis
+Sistem ini ini akan berjalan sebagai berikut:
+- User akan diarahkan untuk login
+- Ketika login sistem akan memeriksa user role dan permission, dan sistem akan meredirect ke halaman dashboard
+- Admin akan memiliki akses ke menu Report, Task, Project, Users, dan Positions
+- Manager akan memiliki akses ke menu Report, Task, dan Project
+- Staff hanya akan memiliki akses ke menu Task
+
+> Lihat file: [`/dokumen/flowdiagram.pdf`](./dokumen/flowdiagram.pdf)
+
+---
+
+## Alur Sistem (Flowchart) (Penjelasan teknis dari Alur Bisnis)
 
 Sistem ini mengikuti flow:
 - Proses login dan validasi credential
@@ -55,8 +67,8 @@ Sistem ini mengikuti flow:
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
+git clone https://github.com/FaizNala/task-manager.git
+cd task-manager
 ```
 
 ### 2. Install Dependency
@@ -83,7 +95,7 @@ php artisan key:generate
 ```bash
 php artisan migrate
 ```
-- Jalankan migrasi
+- Jalankan migrasi (noted data projects dan tasks akan digenerate secara random)
 ```bash
 php artisan db:seed --class=DatabaseSeeder
 ```
@@ -101,10 +113,10 @@ Akses di browser: `http://localhost:8000/admin/login`
     - email : budi.santoso@company.id
     - password : password123
 2. Manager : 
-    - email : ani.wijaya@company.id
+    - email : ani.wijaya@company.id / bambang.sunaryo@company.id / dewi.kurnia@company.id
     - password : password123
 3. Staff : 
-    - email : agus.setiawan@company.id
+    - email : agus.setiawan@company.id / citra.ayu@company.id / eko.prasetyo@company.id / fitriani@company.id
     - password : password123
 
 ---
@@ -116,18 +128,3 @@ Akses di browser: `http://localhost:8000/admin/login`
 - Alur RBAC menggunakan `spatie/laravel-permission`
 
 ---
-
-## Folder Struktur
-
-```
-root/
-├── app/
-├── database/
-├── routes/
-├── public/
-├── dokumen/
-│   ├── ERD.pdf
-│   ├── flowchart.pdf
-│   ├── penjelasan_fitur.md
-│   └── catatan_debugging.md (opsional)
-├── README.md
