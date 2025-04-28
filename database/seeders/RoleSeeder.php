@@ -28,6 +28,7 @@ class RoleSeeder extends Seeder
             'create_task',
             'update_task',
             'delete_task',
+            'update_task_details', // <<< Tambahkan ini
 
             // User
             'view_user',
@@ -57,7 +58,7 @@ class RoleSeeder extends Seeder
             'create_role',
             'update_role',
             'delete_role',
-            
+
         ];
 
         // Buat permission
@@ -81,6 +82,8 @@ class RoleSeeder extends Seeder
             'view_any_task',
             'create_task',
             'update_task',
+            'delete_task',
+            'update_task_details',
             'view_report',
             'view_any_report',
             'export_report',
@@ -90,9 +93,8 @@ class RoleSeeder extends Seeder
         $staff = Role::firstOrCreate(['name' => 'staff']);
         $staff->syncPermissions([
             'view_task',
+            'view_any_task',
             'update_task',
-            'view_report',
-            'view_any_report',
         ]);
     }
 }

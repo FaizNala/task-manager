@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class ProjectResource extends Resource
 {
@@ -115,12 +116,22 @@ class ProjectResource extends Resource
                 ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (Project $record) => auth()->user()->can('update_project')),
+
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn (Project $record) => auth()->user()->can('delete_project'))
+                    ->before(function (Tables\Actions\DeleteAction $action, Project $record) {
+                        if ($record->tasks()->exists()) {
+                            $action->cancel();
+                        }
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ])->visible(fn () => ! auth()->user()->hasRole(['staff', 'manager'])),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->visible(fn () => auth()->user()->can('delete_project')),
+                ]),
             ])
             ->modifyQueryUsing(function (Builder $query) {
                 if (auth()->user()->hasRole('manager')) {
@@ -147,7 +158,26 @@ class ProjectResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()->hasRole(['admin', 'manager']);
+        return auth()->user()->can('view_any_project');
     }
 
+    public static function canView(Model $record): bool
+    {
+        return auth()->user()->can('view_project');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->can('create_project');
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return auth()->user()->can('update_project');
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->user()->can('delete_project');
+    }
 }

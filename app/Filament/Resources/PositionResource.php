@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PositionResource extends Resource
@@ -53,16 +54,22 @@ class PositionResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('department')
-                    ->options([
-                        'IT' => 'IT',
-                        'HR' => 'HR',
-                        'Finance' => 'Finance',
-                        'Operations' => 'Operations',
-                    ]),
+                    ->options(function () {
+                        // Mengambil semua nilai unik dari kolom department
+                        return Position::query()
+                            ->distinct()
+                            ->pluck('department', 'department')
+                            ->toArray();
+                    })
+                    ->label('Department')
+                    ->multiple()
+                    ->preload()
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (Position $record) => auth()->user()->can('update_position')),
                 Tables\Actions\DeleteAction::make()
+                    ->visible(fn (Position $record) => auth()->user()->can('delete_position'))
                     ->before(function ($record) {
                         if ($record->users()->exists()) {
                             throw new \Exception('Cant delete this position because it has employees assigned to it.');
@@ -71,10 +78,12 @@ class PositionResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->visible(fn () => auth()->user()->can('delete_position')),
                 ]),
             ]);
     }
+
     public static function getRelations(): array
     {
         return [
@@ -90,9 +99,29 @@ class PositionResource extends Resource
             'edit' => Pages\EditPosition::route('/{record}/edit'),
         ];
     }
-    
+
     public static function canViewAny(): bool
     {
-        return auth()->user()->hasAnyRole(['admin']);
+        return auth()->user()->can('view_any_position');
+    }
+
+    public static function canView(Model $record): bool
+    {
+        return auth()->user()->can('view_position');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->can('create_position');
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return auth()->user()->can('update_position');
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->user()->can('delete_position');
     }
 }

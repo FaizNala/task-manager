@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class UserResource extends Resource
 {
@@ -44,7 +45,7 @@ class UserResource extends Resource
                     ->multiple()
                     ->preload()
                     ->searchable()
-                    ->hidden(fn () => auth()->user()->hasRole('manager')),
+                    ->visible(fn () => auth()->user()->can('manage_user_roles')),
 
                 Forms\Components\Select::make('position_id')
                     ->label('Position')
@@ -92,20 +93,22 @@ class UserResource extends Resource
                     ->preload(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (User $record) => auth()->user()->can('update_user')),
+
                 Tables\Actions\DeleteAction::make()
-                    ->hidden(fn (User $record) => $record->hasRole('admin')),
+                    ->visible(fn (User $record) => auth()->user()->can('delete_user')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->hidden(fn () => auth()->user()->hasRole('manager')),
+                        ->visible(fn () => auth()->user()->can('delete_user')),
                 ]),
             ])
             ->modifyQueryUsing(function (Builder $query) {
-                if (auth()->user()->hasRole('manager')) {
-                    $query->whereDoesntHave('roles', function ($q) {
-                        $q->where('name', 'admin');
+                if (!auth()->user()->can('view_admin_users')) {
+                    $query->whereDoesntHave('permissions', function ($q) {
+                        $q->where('name', 'admin_access');
                     });
                 }
             });
@@ -129,6 +132,26 @@ class UserResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()->hasAnyRole(['admin']);
+        return auth()->user()->can('view_any_user');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->can('create_user');
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return auth()->user()->can('update_user');
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->user()->can('delete_user');
+    }
+
+    public static function canView(Model $record): bool
+    {
+        return auth()->user()->can('view_user');
     }
 }

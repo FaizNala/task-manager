@@ -31,16 +31,16 @@ class RoleResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('name')
                             ->label(__('filament-shield::filament-shield.field.name'))
-                            ->disabled(),
+                            ->required(),
 
                         Forms\Components\TextInput::make('guard_name')
                             ->label(__('filament-shield::filament-shield.field.guard_name'))
-                            ->disabled(),
+                            ->default('web')
+                            ->required(),
 
                         Forms\Components\CheckboxList::make('permissions')
                             ->label(__('filament-shield::filament-shield.field.permissions'))
                             ->relationship('permissions', 'name')
-                            ->disabled()
                             ->gridDirection('row')
                             ->columns([
                                 'default' => 2,
@@ -82,6 +82,26 @@ class RoleResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->before(function (Tables\Actions\DeleteAction $action, Role $record) {
+                        if ($record->name === 'admin') {
+                            $action->cancel();
+                        }
+                    }),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, array $records) {
+                            foreach ($records as $record) {
+                                if ($record->name === 'admin') {
+                                    $action->cancel();
+                                    break;
+                                }
+                            }
+                        }),
+                ]),
             ])
             ->modifyQueryUsing(function (Builder $query) {
                 if (!auth()->user()->hasRole('admin')) {
@@ -101,7 +121,9 @@ class RoleResource extends Resource
     {
         return [
             'index' => Pages\ListRoles::route('/'),
+            'create' => Pages\CreateRole::route('/create'),
             'view' => Pages\ViewRole::route('/{record}'),
+            'edit' => Pages\EditRole::route('/{record}/edit'),
         ];
     }
 
@@ -115,8 +137,8 @@ class RoleResource extends Resource
         return __('filament-shield::filament-shield.resource.label.roles');
     }
 
-    public static function shouldRegisterNavigation(): bool
+    public static function canViewAny(): bool
     {
-        return auth()->user()->hasRole('admin');
+        return auth()->user()->can('view_any_role');
     }
 }

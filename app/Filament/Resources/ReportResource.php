@@ -15,6 +15,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
+use Illuminate\Database\Eloquent\Model;
+
 
 class ReportResource extends Resource
 {
@@ -23,7 +25,6 @@ class ReportResource extends Resource
     protected static ?string $navigationGroup = 'Reports';
     protected static ?string $navigationLabel = 'Task Reports';
     protected static ?string $modelLabel = 'Task Report';
-
 
     public static function table(Table $table): Table
     {
@@ -61,7 +62,8 @@ class ReportResource extends Resource
                         'start_date' => request()->input('tableFilters.date_range.start_date'),
                         'end_date' => request()->input('tableFilters.date_range.end_date'),
                     ]))
-                    ->openUrlInNewTab(),
+                    ->openUrlInNewTab()
+                    ->visible(fn() => auth()->user()->can('export_report')),
             ])
             ->filters([
                 SelectFilter::make('id')
@@ -146,6 +148,11 @@ class ReportResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()->hasRole(['admin', 'manager']);
+        return auth()->user()->can('view_any_report');
+    }
+
+    public static function canView(Model $record): bool
+    {
+        return auth()->user()->can('view_report');
     }
 }
