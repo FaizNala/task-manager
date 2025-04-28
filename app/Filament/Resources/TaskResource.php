@@ -28,10 +28,12 @@ class TaskResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('title')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->hidden(fn () => auth()->user()->hasRole('staff')),
                 Forms\Components\Textarea::make('description')
                     ->maxLength(65535)
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->hidden(fn () => auth()->user()->hasRole('staff')),
                 Forms\Components\Select::make('status')
                     ->options([
                         'to_do' => 'To Do',
@@ -40,7 +42,8 @@ class TaskResource extends Resource
                     ])
                     ->required(),
                 Forms\Components\DateTimePicker::make('deadline')
-                    ->required(),
+                    ->required()
+                    ->hidden(fn () => auth()->user()->hasRole('staff')),
                 Forms\Components\Select::make('project_id')
                     ->relationship('project', 'name')
                     ->searchable()
@@ -135,7 +138,7 @@ class TaskResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                ])->visible(fn () => ! auth()->user()->hasRole(['staff', 'manager'])),
             ])
             ->modifyQueryUsing(function (Builder $query) {
                 if (auth()->user()->hasRole('manager')) {
